@@ -5,7 +5,7 @@ import io.javalin.Javalin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class App {
+public final class App {
     final Logger logger = LoggerFactory.getLogger(App.class);
     public static void main(String[] args) {
         Javalin app = getApp();

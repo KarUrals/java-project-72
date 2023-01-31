@@ -4,6 +4,7 @@ plugins {
     id 'checkstyle'
     id 'jacoco'
     id 'com.adarshr.test-logger' version '3.2.0'
+    id 'io.ebean' version '13.11.0'
 }
 
 group 'hexlet.code'
@@ -15,9 +16,27 @@ repositories {
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
+
     implementation 'io.javalin:javalin:5.2.0'
     implementation 'org.slf4j:slf4j-simple:2.0.5'
+
+    implementation 'io.ebean:ebean:13.11.0'
+    implementation 'io.ebean:ebean-ddl-generator:13.11.0' // Позволяет генерировать миграции
+    implementation 'io.ebean:ebean-querybean:13.10.1' // Query builder. Позволяет строить запросы
+    implementation 'io.ebean:ebean-migration:13.6.2' // Позволяет автоматически выполнять миграции
+    implementation 'io.ebean:ebean-annotation:8.3' // Добавляет различные аннотации
+    annotationProcessor 'io.ebean:querybean-generator:13.10.1' // Обработчик аннотаций используется для генерации компонента запроса
+
+    // NOTE: ebean-ddl-generator требует старые зависимости, которых нет в java 9 и выше
+    implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.5'
+    implementation 'javax.activation:activation:1.1.1'
+
+
+
+    testImplementation 'com.h2database:h2:2.1.214'
+
 }
 
 test {
@@ -36,4 +55,9 @@ jacocoTestReport {
     reports {
         xml.required = true
     }
+}
+
+task generateMigrations(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'hexlet.code.MigrationGenerator'
 }
