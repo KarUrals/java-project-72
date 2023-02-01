@@ -8,6 +8,8 @@ import io.javalin.http.NotFoundResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -44,25 +46,35 @@ public class UrlController {
     public static Handler createUrl = ctx -> {
         String name = ctx.formParam("url");
 
-        if (name.isEmpty()) {
+        try {
+            URL urlObject = new URL(name);
+            String protocol = urlObject.getProtocol();
+            String host = urlObject.getHost();
+
+            String urlName = String.format("%s://%s", protocol, host);
+            int port = urlObject.getPort();
+            if (port > 0) {
+                urlName = urlName + ":" + port;
+            }
+
+            Url existingUrl = new QUrl()
+                    .name.equalTo(urlName).findOne();
+
+            if (existingUrl != null) {
+                ctx.sessionAttribute("flash", "Страница уже существует");
+                ctx.sessionAttribute("flash-type", "info");
+                ctx.redirect("/urls");
+                return;
+            }
+
+            Url url = new Url(urlName);
+            url.save();
+        } catch (MalformedURLException e) {
             ctx.sessionAttribute("flash", "Некорректный URL");
             ctx.sessionAttribute("flash-type", "danger");
             ctx.redirect("/");
             return;
         }
-
-        Url existingUrl = new QUrl()
-                .name.equalTo(name).findOne();
-
-        if (existingUrl != null) {
-            ctx.sessionAttribute("flash", "Страница уже существует");
-            ctx.sessionAttribute("flash-type", "info");
-            ctx.redirect("/urls");
-            return;
-        }
-
-        Url url = new Url(name);
-        url.save();
 
         ctx.sessionAttribute("flash", "Страница успешно добавлена");
         ctx.sessionAttribute("flash-type", "success");
