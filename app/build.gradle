@@ -15,23 +15,24 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.javalin:javalin:4.3.0'
-    implementation 'org.slf4j:slf4j-simple:1.7.36'
 
-    implementation 'org.thymeleaf:thymeleaf:3.0.15.RELEASE'
-    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.1.0'
-    implementation 'org.thymeleaf.extras:thymeleaf-extras-java8time:3.0.4.RELEASE'
-    implementation 'org.webjars:bootstrap:5.1.3'
+    implementation 'io.javalin:javalin:4.3.0'   //фреймворк Javalin
+    implementation 'org.slf4j:slf4j-simple:1.7.36'   //логер SLF4J
+
+    implementation 'org.thymeleaf:thymeleaf:3.0.15.RELEASE'   //шаблонизатор Thymeleaf
+    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.1.0'   //позволяет создавать общие макеты и переиспользовать их
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-java8time:3.0.4.RELEASE'   //добавляет в шаблоны объект temporals со множеством полезных методов по форматированию
+    implementation 'org.webjars:bootstrap:5.2.3'   //фреймворк bootstrap
 
     implementation 'com.h2database:h2:2.1.210'
     implementation 'org.postgresql:postgresql:42.3.3'
 
-    implementation 'io.ebean:ebean:12.15.1'
-    implementation 'io.ebean:ebean-ddl-generator:12.15.1'
-    implementation 'io.ebean:ebean-querybean:12.15.1'
-    implementation 'io.ebean:ebean-migration:12.15.1'
-    implementation 'io.ebean:ebean-annotation:7.7'
-    annotationProcessor 'io.ebean:querybean-generator:12.15.1'
+    implementation 'io.ebean:ebean:12.15.1'   //фреймворк Ebean
+    implementation 'io.ebean:ebean-ddl-generator:12.15.1'   //позволяет генерировать миграции
+    implementation 'io.ebean:ebean-querybean:12.15.1'   //Query builder. Позволяет строить запросы
+    implementation 'io.ebean:ebean-migration:12.15.1'   //позволяет автоматически выполнять миграции
+    implementation 'io.ebean:ebean-annotation:7.7'   //добавляет различные аннотации
+    annotationProcessor 'io.ebean:querybean-generator:12.15.1'   //обработчик аннотаций используется для генерации компонента запроса
 
     // NOTE: ebean-ddl-generator требует старые зависимости, которых нет в java 9 и выше
     implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.5'
