@@ -1,11 +1,11 @@
 package hexlet.code;
 
 import hexlet.code.controllers.RootController;
+import hexlet.code.controllers.UrlController;
 
 import io.javalin.Javalin;
-
-
 import io.javalin.plugin.rendering.template.JavalinThymeleaf;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +13,10 @@ import org.thymeleaf.TemplateEngine;
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
 import org.thymeleaf.extras.java8time.dialect.Java8TimeDialect;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+
+import static io.javalin.apibuilder.ApiBuilder.get;
+import static io.javalin.apibuilder.ApiBuilder.path;
+import static io.javalin.apibuilder.ApiBuilder.post;
 
 public final class App {
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
@@ -24,7 +28,6 @@ public final class App {
     public static Javalin getApp() {
 
         // Создаём приложение
-//        Javalin app = Javalin.create();
         Javalin app = Javalin.create(config -> {
             if (!isProduction()) {
                 // Включаем логгирование
@@ -80,6 +83,17 @@ public final class App {
 
     private static void addRoutes(Javalin app) {
         app.get("/", RootController.welcome);
+
+        app.routes(() -> {
+            path("urls", () -> {
+                get(UrlController.showAllUrls);
+                post(UrlController.createUrl);
+                path("{id}", () -> {
+                    get(UrlController.showUrl);
+//                    post("/checks", UrlController.CHECK_URL);
+                });
+            });
+        });
     }
 
     public void print() {
