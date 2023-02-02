@@ -38,11 +38,13 @@ dependencies {
     implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.5'
     implementation 'javax.activation:activation:1.1.1'
 
+    implementation 'com.konghq:unirest-java:3.13.11'
+    implementation 'org.jsoup:jsoup:1.15.3'
+
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
     testImplementation 'org.assertj:assertj-core:3.22.0'
     testImplementation 'io.ebean:ebean-test:12.15.1'
-    testImplementation 'com.konghq:unirest-java:3.13.6'
 }
 
 test {
