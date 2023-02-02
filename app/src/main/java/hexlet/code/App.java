@@ -96,7 +96,4 @@ public final class App {
         });
     }
 
-    public void print() {
-        System.out.print("KAR test");
-    }
 }
