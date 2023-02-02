@@ -23,14 +23,6 @@
                     <td>
                         <a th:href="@{/urls/{id}(id=*{getId()})}" th:text="${#strings.abbreviate(url.getName(), 30)}"></a>
                     </td>
-<!--                    <td th:text="*{!url.urlChecks.isEmpty} ? *{#temporals.format(url.urlChecks.get(0).getCreatedAt(), 'dd/MM/yyyy HH:mm')} : ''"></td>-->
-<!--                    <td>4</td>-->
-<!--                    <td>-->
-<!--                        <span class="col-2"-->
-<!--                              th:if="${not #lists.isEmpty(url.urlChecks)}"-->
-<!--                              th:text="${url.urlChecks[#lists.size(url.urlChecks)-1].statusCode}">-->
-<!--                        </span>-->
-<!--                    </td>-->
                     <td th:if="${#lists.isEmpty(url.urlChecks)}"></td>
                     <td th:if="${#lists.isEmpty(url.urlChecks)}"></td>
 
