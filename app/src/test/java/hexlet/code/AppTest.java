@@ -1,6 +1,7 @@
 package hexlet.code;
 
 import hexlet.code.domain.Url;
+import hexlet.code.domain.query.QUrl;
 import io.ebean.DB;
 import io.ebean.Database;
 import io.javalin.Javalin;
@@ -30,7 +31,12 @@ class AppTest {
         int port = app.port();
         // Формируем базовый URL
         baseUrl = "http://localhost:" + port;
+
         database = DB.getDefault();
+
+        existingUrl = new QUrl()
+                .id.equalTo(1L)
+                .findOne();
     }
 
     @AfterAll
@@ -53,11 +59,108 @@ class AppTest {
         @Test
         void testIndex() {
             HttpResponse<String> response = Unirest
-                    .get(baseUrl + "/")
+                    .get(baseUrl)
                     .asString();
 
             assertThat(response.getStatus()).isEqualTo(200);
-            assertThat(response.getBody()).contains("Анализатор страниц", "Пример: https://www.example.com");
+            assertThat(response.getBody()).contains("Анализатор страниц");
+            assertThat(response.getBody()).contains("Пример: https://www.example.com");
+            assertThat(response.getBody()).contains("KarUrals");
+        }
+    }
+
+    @Nested
+    class UrlTest {
+
+        @Test
+        void testIndex() {
+            HttpResponse<String> response = Unirest
+                    .get(baseUrl + "/urls")
+                    .asString();
+            String body = response.getBody();
+
+            assertThat(response.getStatus()).isEqualTo(200);
+            assertThat(body).contains(existingUrl.getName());
+        }
+
+        @Test
+        void testShowUrl() {
+            HttpResponse<String> response = Unirest
+                    .get(baseUrl + "/urls/" + existingUrl.getId())
+                    .asString();
+            String body = response.getBody();
+
+            assertThat(response.getStatus()).isEqualTo(200);
+            assertThat(body).contains(existingUrl.getName());
+        }
+
+        @Test
+        void testCreateUrl() {
+            String url = "https://www.ya.ru";
+            HttpResponse<String> responsePost = Unirest
+                    .post(baseUrl + "/urls")
+                    .field("url", url)
+                    .asString();
+
+            assertThat(responsePost.getStatus()).isEqualTo(302);
+            assertThat(responsePost.getHeaders().getFirst("Location")).isEqualTo("/urls");
+
+            HttpResponse<String> response = Unirest
+                    .get(baseUrl + "/urls")
+                    .asString();
+            String body = response.getBody();
+
+            assertThat(response.getStatus()).isEqualTo(200);
+            assertThat(body).contains(url);
+            assertThat(body).contains("Страница успешно добавлена");
+
+            Url actualUrl = new QUrl()
+                    .name.equalTo(url)
+                    .findOne();
+
+            assertThat(actualUrl).isNotNull();
+            assertThat(actualUrl.getName()).isEqualTo(url);
+        }
+
+        @Test
+        void testCreateInvalidUrl() {
+            String url = "invalidUrl";
+            HttpResponse<String> responsePost = Unirest
+                    .post(baseUrl + "/urls")
+                    .field("url", url)
+                    .asString();
+
+            assertThat(responsePost.getStatus()).isEqualTo(302);
+            assertThat(responsePost.getHeaders().getFirst("Location")).isEqualTo("/");
+
+            HttpResponse<String> response = Unirest
+                    .get(baseUrl + "/")
+                    .asString();
+            String body = response.getBody();
+
+            assertThat(response.getStatus()).isEqualTo(200);
+            assertThat(body).contains("Некорректный URL");
+        }
+
+        @Test
+        void testCreateExistingUrl() {
+            String url = existingUrl.getName();
+            HttpResponse<String> responsePost = Unirest
+                    .post(baseUrl + "/urls")
+                    .field("url", url)
+                    .asString();
+
+            assertThat(responsePost.getStatus()).isEqualTo(302);
+            assertThat(responsePost.getHeaders().getFirst("Location")).isEqualTo("/urls");
+
+            HttpResponse<String> response = Unirest
+                    .get(baseUrl + "/urls")
+                    .asString();
+            String body = response.getBody();
+
+            assertThat(response.getStatus()).isEqualTo(200);
+            assertThat(body).contains(url);
+            assertThat(body).contains("Страница уже существует");
         }
     }
 
