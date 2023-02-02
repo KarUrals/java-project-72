@@ -2,12 +2,17 @@ package hexlet.code;
 
 import hexlet.code.domain.Url;
 import hexlet.code.domain.query.QUrl;
+
 import io.ebean.DB;
-import io.ebean.Database;
+import io.ebean.Transaction;
+
 import io.javalin.Javalin;
+
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
+
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -19,7 +24,7 @@ class AppTest {
     private static Javalin app;
     private static String baseUrl;
     private static Url existingUrl;
-    private static Database database;
+    private static Transaction transaction;
 
     @BeforeAll
     public static void beforeAll() {
@@ -27,12 +32,12 @@ class AppTest {
         app = App.getApp();
         // Запускаем приложение на рандомном порту
         app.start(0);
-        // Получаем порт, на которм запустилось приложение
+        // Получаем порт, на котором запустилось приложение
         int port = app.port();
         // Формируем базовый URL
         baseUrl = "http://localhost:" + port;
 
-        database = DB.getDefault();
+//        database = DB.getDefault();
 
         existingUrl = new QUrl()
                 .id.equalTo(1L)
@@ -45,12 +50,14 @@ class AppTest {
         app.stop();
     }
 
-    // Тесты не зависят друг от друга
-    // Но хорошей практикой будет возвращать базу данных между тестами в исходное состояние
     @BeforeEach
     void beforeEach() {
-        database.script().run("/truncate.sql");
-        database.script().run("/seed-test-db.sql");
+        transaction = DB.beginTransaction();
+    }
+
+    @AfterEach
+    void afterEach() {
+        transaction.rollback();
     }
 
     @Nested
