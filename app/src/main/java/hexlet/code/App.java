@@ -90,7 +90,7 @@ public final class App {
                 post(UrlController.createUrl);
                 path("{id}", () -> {
                     get(UrlController.showUrl);
-//                    post("/checks", UrlController.CHECK_URL);
+                    post("/checks", UrlController.checkUrl);
                 });
             });
         });
