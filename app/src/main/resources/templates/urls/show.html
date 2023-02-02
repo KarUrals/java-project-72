@@ -10,7 +10,7 @@
       <tbody>
       <tr>
         <td>ID</td>
-        <td th:text="*{getId()}">1</td>
+        <td th:text="*{getId()}"></td>
       </tr>
       <tr>
         <td>Имя</td>
@@ -39,8 +39,8 @@
       </tr></thead>
       <tbody>
       <tr th:each="urlCheck : ${urlChecks}" th:object="${urlCheck}">
-        <td th:text="*{getId()}"></td>
-        <td th:text="*{getStatusCode()}"></td>
+        <td th:text="${urlCheck.getId()}"></td>
+        <td th:text="${urlCheck.getStatusCode()}"></td>
         <td th:text="${urlCheck.getTitle()}"></td>
         <td th:text="${urlCheck.getH1()}"></td>
         <td th:text="${urlCheck.getDescription()}"></td>
