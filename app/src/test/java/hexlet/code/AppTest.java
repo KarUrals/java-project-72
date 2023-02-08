@@ -113,26 +113,26 @@ class AppTest {
         @Test
         void testCreateUrl() {
             String url = "https://www.ya.ru";
+
             HttpResponse<String> responsePost = Unirest
                     .post(baseUrl + "/urls")
                     .field("url", url)
                     .asString();
 
-            assertThat(responsePost.getStatus()).isEqualTo(HttpServletResponse.SC_FOUND);
-            assertThat(responsePost.getHeaders().getFirst("Location")).isEqualTo("/urls");
-
-            HttpResponse<String> response = Unirest
+            HttpResponse<String> responseGet = Unirest
                     .get(baseUrl + "/urls")
                     .asString();
-            String body = response.getBody();
-
-            assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
-            assertThat(body).contains(url);
-            assertThat(body).contains("Страница успешно добавлена");
 
             Url actualUrl = new QUrl()
                     .name.equalTo(url)
                     .findOne();
+
+            assertThat(responsePost.getStatus()).isEqualTo(HttpServletResponse.SC_FOUND);
+            assertThat(responsePost.getHeaders().getFirst("Location")).isEqualTo("/urls");
+
+            assertThat(responseGet.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
+            assertThat(responseGet.getBody()).contains(url);
+            assertThat(responseGet.getBody()).contains("Страница успешно добавлена");
 
             assertThat(actualUrl).isNotNull();
             assertThat(actualUrl.getName()).isEqualTo(url);
@@ -141,42 +141,42 @@ class AppTest {
         @Test
         void testCreateInvalidUrl() {
             String url = "invalidUrl";
+
             HttpResponse<String> responsePost = Unirest
                     .post(baseUrl + "/urls")
                     .field("url", url)
+                    .asString();
+
+            HttpResponse<String> responseGet = Unirest
+                    .get(baseUrl + "/")
                     .asString();
 
             assertThat(responsePost.getStatus()).isEqualTo(HttpServletResponse.SC_FOUND);
             assertThat(responsePost.getHeaders().getFirst("Location")).isEqualTo("/");
 
-            HttpResponse<String> response = Unirest
-                    .get(baseUrl + "/")
-                    .asString();
-            String body = response.getBody();
-
-            assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
-            assertThat(body).contains("Некорректный URL");
+            assertThat(responseGet.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
+            assertThat(responseGet.getBody()).contains("Некорректный URL");
         }
 
         @Test
         void testCreateExistingUrl() {
             String url = existingUrl.getName();
+
             HttpResponse<String> responsePost = Unirest
                     .post(baseUrl + "/urls")
                     .field("url", url)
                     .asString();
 
+            HttpResponse<String> responseGet = Unirest
+                    .get(baseUrl + "/urls")
+                    .asString();
+
             assertThat(responsePost.getStatus()).isEqualTo(HttpServletResponse.SC_FOUND);
             assertThat(responsePost.getHeaders().getFirst("Location")).isEqualTo("/urls");
 
-            HttpResponse<String> response = Unirest
-                    .get(baseUrl + "/urls")
-                    .asString();
-            String body = response.getBody();
-
-            assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
-            assertThat(body).contains(url);
-            assertThat(body).contains("Страница уже существует");
+            assertThat(responseGet.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
+            assertThat(responseGet.getBody()).contains(url);
+            assertThat(responseGet.getBody()).contains("Страница уже существует");
         }
 
         @Test
@@ -195,12 +195,12 @@ class AppTest {
                     .field("url", mockWebServerUrl)
                     .asString();
 
-            assertThat(responsePost1.getStatus()).isEqualTo(HttpServletResponse.SC_FOUND);
-            assertThat(responsePost1.getHeaders().getFirst("Location")).isEqualTo("/urls");
-
             Url createdUrl = new QUrl()
                     .name.equalTo(mockWebServerUrl.substring(0, mockWebServerUrl.length() - 1))
                     .findOne();
+
+            assertThat(responsePost1.getStatus()).isEqualTo(HttpServletResponse.SC_FOUND);
+            assertThat(responsePost1.getHeaders().getFirst("Location")).isEqualTo("/urls");
 
             assertThat(createdUrl).isNotNull();
 
@@ -211,24 +211,23 @@ class AppTest {
                     .post(baseUrl + "/urls/" + createdUrl.getId() + "/checks")
                     .asString();
 
-            assertThat(responsePost2.getStatus()).isEqualTo(HttpServletResponse.SC_FOUND);
-            assertThat(responsePost2.getHeaders().getFirst("Location")).isEqualTo("/urls/" + createdUrl.getId());
-
-            HttpResponse<String> response = Unirest
+            HttpResponse<String> responseGet = Unirest
                     .get(baseUrl + "/urls/" + createdUrl.getId())
                     .asString();
-            String body = response.getBody();
-
-            assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
-            assertThat(body).contains(mockWebServerUrl.substring(0, mockWebServerUrl.length() - 1));
-            assertThat(body).contains("Страница успешно проверена");
 
             UrlCheck latestCheck = new QUrlCheck()
                     .url.equalTo(createdUrl)
                     .orderBy()
-                        .id
-                        .desc()
+                    .id
+                    .desc()
                     .findOne();
+
+            assertThat(responsePost2.getStatus()).isEqualTo(HttpServletResponse.SC_FOUND);
+            assertThat(responsePost2.getHeaders().getFirst("Location")).isEqualTo("/urls/" + createdUrl.getId());
+
+            assertThat(responseGet.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
+            assertThat(responseGet.getBody()).contains(mockWebServerUrl.substring(0, mockWebServerUrl.length() - 1));
+            assertThat(responseGet.getBody()).contains("Страница успешно проверена");
 
             assertThat(latestCheck).isNotNull();
             assertThat(latestCheck.getDescription()).isEqualTo(description);
