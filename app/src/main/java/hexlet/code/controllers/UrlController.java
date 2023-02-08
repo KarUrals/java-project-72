@@ -52,36 +52,40 @@ public class UrlController {
 
     public static Handler createUrl = ctx -> {
         String name = ctx.formParam("url");
+        URL urlObject;
 
         try {
-            URL urlObject = new URL(name);
-            String protocol = urlObject.getProtocol();
-            String host = urlObject.getHost();
-
-            String urlName = String.format("%s://%s", protocol, host);
-            int port = urlObject.getPort();
-            if (port > 0) {
-                urlName = urlName + ":" + port;
-            }
-
-            Url existingUrl = new QUrl()
-                    .name.equalTo(urlName).findOne();
-
-            if (existingUrl != null) {
-                ctx.sessionAttribute("flash", "Страница уже существует");
-                ctx.sessionAttribute("flash-type", "info");
-                ctx.redirect("/urls");
-                return;
-            }
-
-            Url url = new Url(urlName);
-            url.save();
+            urlObject = new URL(name);
         } catch (MalformedURLException e) {
             ctx.sessionAttribute("flash", "Некорректный URL");
             ctx.sessionAttribute("flash-type", "danger");
             ctx.redirect("/");
             return;
         }
+
+        String protocol = urlObject.getProtocol();
+        String host = urlObject.getHost();
+        int port = urlObject.getPort();
+
+        String urlName = String.format("%s://%s%s",
+                    protocol,
+                    host,
+                    port == -1 ? "" : ":" + port)
+                .toLowerCase();
+
+
+        Url existingUrl = new QUrl()
+                    .name.equalTo(urlName).findOne();
+
+        if (existingUrl != null) {
+            ctx.sessionAttribute("flash", "Страница уже существует");
+            ctx.sessionAttribute("flash-type", "info");
+            ctx.redirect("/urls");
+            return;
+        }
+
+        Url url = new Url(urlName);
+        url.save();
 
         ctx.sessionAttribute("flash", "Страница успешно добавлена");
         ctx.sessionAttribute("flash-type", "success");
