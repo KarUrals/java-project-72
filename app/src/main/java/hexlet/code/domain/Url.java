@@ -15,7 +15,6 @@ import java.util.List;
 @Entity
 public final class Url extends Model {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String name;
     @WhenCreated

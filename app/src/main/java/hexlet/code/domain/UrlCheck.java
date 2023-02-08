@@ -13,7 +13,6 @@ import java.time.Instant;
 @Entity
 public final class UrlCheck extends Model {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private int statusCode;
     private String title;
