@@ -11,8 +11,6 @@ import kong.unirest.Unirest;
 import kong.unirest.UnirestException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -22,8 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class UrlController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UrlController.class);
-    public static Handler showAllUrls = ctx -> {
+   public static Handler showAllUrls = ctx -> {
         int page = ctx.queryParamAsClass("page", Integer.class).getOrDefault(1) - 1;
         int rowsPerPage = 10;
 

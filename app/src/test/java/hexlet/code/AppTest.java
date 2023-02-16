@@ -34,9 +34,15 @@ class AppTest {
     private static String baseUrl;
     private static Url existingUrl;
     private static Transaction transaction;
+    private static MockWebServer mockWebServer;
+    private static String mockWebServerUrl;
+
+    private static final String TEST_PAGE_DESCRIPTION = "Test site description";
+    private static final String TEST_PAGE_TITLE = "Test site title";
+    private static final String TEST_PAGE_H1 = "Hello, World!";
 
     @BeforeAll
-    public static void beforeAll() {
+    public static void beforeAll() throws IOException {
         // Получаем инстанс приложения
         app = App.getApp();
         // Запускаем приложение на рандомном порту
@@ -46,17 +52,23 @@ class AppTest {
         // Формируем базовый URL
         baseUrl = "http://localhost:" + port;
 
-//        database = DB.getDefault();
-
         existingUrl = new QUrl()
                 .id.equalTo(1L)
                 .findOne();
+
+        mockWebServer = new MockWebServer();
+        mockWebServer.start();
+        mockWebServerUrl = mockWebServer.url("/").toString();
+        String testHtmlPageBody = Files.readString(Paths.get("src/test/resources/simple-doc.html"));
+        mockWebServer.enqueue(new MockResponse().setBody(testHtmlPageBody));
     }
 
     @AfterAll
-    public static void afterAll() {
+    public static void afterAll() throws IOException {
         // Останавливаем приложение
         app.stop();
+        // Останавливаем mockWebServer
+        mockWebServer.shutdown();
     }
 
     @BeforeEach
@@ -180,15 +192,7 @@ class AppTest {
         }
 
         @Test
-        void testCheckUrl() throws IOException {
-            String description = "Test site description";
-            String title = "Test site title";
-            String h1 = "Hello, World!";
-
-            MockWebServer mockWebServer = new MockWebServer();
-            mockWebServer.start();
-
-            String mockWebServerUrl = mockWebServer.url("/").toString();
+        void testCheckUrl() {
 
             HttpResponse<String> responsePost1 = Unirest
                     .post(baseUrl + "/urls")
@@ -199,13 +203,52 @@ class AppTest {
                     .name.equalTo(mockWebServerUrl.substring(0, mockWebServerUrl.length() - 1))
                     .findOne();
 
+            HttpResponse<String> responsePost2 = Unirest
+                    .post(baseUrl + "/urls/" + createdUrl.getId() + "/checks")
+                    .asString();
+
+            HttpResponse<String> responseGet = Unirest
+                    .get(baseUrl + "/urls/" + createdUrl.getId())
+                    .asString();
+
+            UrlCheck latestCheck = new QUrlCheck()
+                    .url.equalTo(createdUrl)
+                    .orderBy()
+                    .id
+                    .desc()
+                    .findOne();
+
             assertThat(responsePost1.getStatus()).isEqualTo(HttpServletResponse.SC_FOUND);
             assertThat(responsePost1.getHeaders().getFirst("Location")).isEqualTo("/urls");
 
             assertThat(createdUrl).isNotNull();
 
-            String testHtmlBody = Files.readString(Paths.get("src/test/resources/simple-doc.html"));
-            mockWebServer.enqueue(new MockResponse().setBody(testHtmlBody));
+            assertThat(responsePost2.getStatus()).isEqualTo(HttpServletResponse.SC_FOUND);
+            assertThat(responsePost2.getHeaders().getFirst("Location")).isEqualTo("/urls/" + createdUrl.getId());
+
+            assertThat(responseGet.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
+            assertThat(responseGet.getBody()).contains(mockWebServerUrl.substring(0, mockWebServerUrl.length() - 1));
+            assertThat(responseGet.getBody()).contains("Страница успешно проверена");
+
+            assertThat(latestCheck).isNotNull();
+            assertThat(latestCheck.getDescription()).isEqualTo(TEST_PAGE_DESCRIPTION);
+            assertThat(latestCheck.getTitle()).isEqualTo(TEST_PAGE_TITLE);
+            assertThat(latestCheck.getH1()).isEqualTo(TEST_PAGE_H1);
+        }
+
+        @Test
+        void testCheckIncorrectUrl() {
+
+            String incorrectUrl = "https://www.example.som";
+
+            HttpResponse<String> responsePost1 = Unirest
+                    .post(baseUrl + "/urls")
+                    .field("url", incorrectUrl)
+                    .asString();
+
+            Url createdUrl = new QUrl()
+                    .name.equalTo(incorrectUrl)
+                    .findOne();
 
             HttpResponse<String> responsePost2 = Unirest
                     .post(baseUrl + "/urls/" + createdUrl.getId() + "/checks")
@@ -226,15 +269,10 @@ class AppTest {
             assertThat(responsePost2.getHeaders().getFirst("Location")).isEqualTo("/urls/" + createdUrl.getId());
 
             assertThat(responseGet.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
-            assertThat(responseGet.getBody()).contains(mockWebServerUrl.substring(0, mockWebServerUrl.length() - 1));
-            assertThat(responseGet.getBody()).contains("Страница успешно проверена");
+            assertThat(responseGet.getBody()).contains(incorrectUrl);
+            assertThat(responseGet.getBody()).contains("Некорректный адрес");
 
-            assertThat(latestCheck).isNotNull();
-            assertThat(latestCheck.getDescription()).isEqualTo(description);
-            assertThat(latestCheck.getTitle()).isEqualTo(title);
-            assertThat(latestCheck.getH1()).isEqualTo(h1);
-
-            mockWebServer.shutdown();
+            assertThat(latestCheck).isNull();
         }
     }
 }
