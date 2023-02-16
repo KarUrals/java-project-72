@@ -40,6 +40,7 @@ class AppTest {
     private static final String TEST_PAGE_DESCRIPTION = "Test site description";
     private static final String TEST_PAGE_TITLE = "Test site title";
     private static final String TEST_PAGE_H1 = "Hello, World!";
+    private static final String NONEXISTENT_URL_ID = "1000000";
 
     @BeforeAll
     public static void beforeAll() throws IOException {
@@ -120,6 +121,17 @@ class AppTest {
 
             assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
             assertThat(body).contains(existingUrl.getName());
+        }
+
+        @Test
+        void testShowNonexistentUrl() {
+            HttpResponse<String> response = Unirest
+                    .get(baseUrl + "/urls/" + NONEXISTENT_URL_ID)
+                    .asString();
+            String body = response.getBody();
+
+            assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_NOT_FOUND);
+            assertThat(body).contains("Not found");
         }
 
         @Test
@@ -273,6 +285,17 @@ class AppTest {
             assertThat(responseGet.getBody()).contains("Некорректный адрес");
 
             assertThat(latestCheck).isNull();
+        }
+
+        @Test
+        void testCheckNonexistentUrl() {
+            HttpResponse<String> response = Unirest
+                    .post(baseUrl + "/urls/" + NONEXISTENT_URL_ID + "/checks")
+                    .asString();
+            String body = response.getBody();
+
+            assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_NOT_FOUND);
+            assertThat(body).contains("Not found");
         }
     }
 }
