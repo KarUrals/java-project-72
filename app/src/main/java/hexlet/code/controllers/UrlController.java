@@ -20,7 +20,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class UrlController {
-   public static Handler showAllUrls = ctx -> {
+
+    public static Handler showAllUrls = ctx -> {
         int page = ctx.queryParamAsClass("page", Integer.class).getOrDefault(1) - 1;
         int rowsPerPage = 10;
 
